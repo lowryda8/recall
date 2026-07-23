@@ -123,19 +123,59 @@
     color: #23200f;
     font-weight: 600;
   }
-  .tag-chip .x{ margin-left:4px; }
 
-  /* ---------- Grid of cards ---------- */
+  /* ---------- Category management row ---------- */
+  .cat-manage-row{
+    display:flex; justify-content: flex-end;
+    max-width: 760px; margin: 0 auto 12px;
+    padding: 0 16px;
+  }
+  .add-cat-btn{
+    font-family: var(--font-mono); font-size: 12px;
+    padding: 7px 12px; border-radius: 20px;
+    border: 1px dashed var(--ink-line);
+    background: transparent; color: var(--ink-text-dim);
+    cursor: pointer;
+  }
+  .add-cat-btn:active{ background: var(--ink-soft); }
+
+  /* ---------- Category sections ---------- */
   main{
-    padding: 14px 16px 100px;
+    padding: 6px 16px 100px;
     max-width: 760px;
     margin: 0 auto;
   }
-  .grid{
+
+  .cat-section{ margin-bottom: 10px; }
+  .cat-header{
+    display:flex; align-items:center; gap:8px;
+    padding: 12px 4px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--ink-line);
+  }
+  .cat-header .chevron{
+    font-size: 11px; color: var(--ink-text-dim); width: 12px; flex:none;
+  }
+  .cat-header .cat-name{
+    font-family: var(--font-display); font-weight: 600; font-size: 17px;
+    flex: 1;
+  }
+  .cat-header .cat-count{
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-text-dim);
+  }
+  .cat-header .cat-del{
+    background:none; border:none; color: var(--ink-text-dim);
+    font-size: 14px; cursor:pointer; padding: 2px 6px;
+  }
+  .cat-header .cat-del:active{ color: var(--rust); }
+
+  .cat-body{
     display:grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 14px;
+    padding: 14px 2px 4px;
   }
+  .cat-body.collapsed{ display:none; }
 
   .empty-state{
     text-align:center;
@@ -152,12 +192,13 @@
   }
   .empty-state p{ margin: 0; font-size: 14px; line-height: 1.5; }
 
+  /* ---------- Card ---------- */
   .card{
     position: relative;
     background: var(--paper);
     color: var(--paper-text);
     border-radius: 3px 10px 10px 3px;
-    padding: 16px 14px 14px;
+    padding: 14px 14px 14px;
     cursor: pointer;
     box-shadow: 0 3px 10px rgba(0,0,0,0.25);
     transition: transform .15s ease, box-shadow .15s ease;
@@ -168,26 +209,31 @@
     .card:hover{ transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.32); }
   }
 
-  .card .tab{
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--teal);
-    margin-bottom: 6px;
+  .card-row{ display:flex; gap:10px; align-items:flex-start; margin-bottom: 8px; }
+  .avatar{
+    width:42px; height:42px; border-radius:50%; flex:none;
+    background-size: cover; background-position: center;
+    background-color: var(--teal);
+    color: var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-weight:600; font-size:16px;
   }
   .card h3{
     font-family: var(--font-display);
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 600;
-    margin: 0 0 4px;
-    line-height: 1.2;
+    margin: 2px 0 0;
+    line-height: 1.25;
   }
-  .card .meta{
+  .card .notes-preview{
     font-size: 12.5px;
     color: #5c5748;
     margin-bottom: 8px;
     line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   .card .chips{ display:flex; flex-wrap:wrap; gap:4px; }
   .card .chip{
@@ -284,6 +330,32 @@
   input:focus, textarea:focus, select:focus{ outline: 2px solid var(--teal-bright); outline-offset:1px; }
   .hint{ font-size: 12px; color: var(--ink-text-dim); margin-top: 4px; }
 
+  /* Photo picker */
+  .photo-row{ display:flex; align-items:center; gap:14px; }
+  .photo-preview{
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--ink); border: 1px dashed var(--ink-line);
+    background-size: cover; background-position: center;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--ink-text-dim); font-family: var(--font-mono); font-size: 10px;
+    text-align:center; cursor:pointer; flex:none;
+  }
+  .photo-actions{ display:flex; flex-direction:column; gap:8px; }
+  .photo-btn{
+    background: var(--ink-line); border:none; color: var(--ink-text);
+    border-radius: 8px; padding: 8px 12px; font-size: 13px; cursor:pointer;
+    font-family: var(--font-body);
+  }
+  .photo-btn.remove{ background: transparent; border: 1px solid var(--ink-line); color: var(--rust); }
+
+  /* Category select row */
+  .cat-select-row{ display:flex; gap:8px; }
+  .cat-select-row select{ flex:1; }
+  .cat-select-row button{
+    flex:none; background: var(--ink-line); border:none; color: var(--ink-text);
+    border-radius: 8px; padding: 0 14px; font-size: 13px; cursor:pointer;
+  }
+
   .conn-row{ display:flex; gap:8px; margin-bottom:8px; }
   .conn-row select{ flex: 1.3; }
   .conn-row input{ flex: 1; }
@@ -302,11 +374,6 @@
   .conn-item button{
     background:none; border:none; color: var(--rust); font-size: 16px; cursor:pointer;
   }
-  .add-link-btn{
-    background: none; border: 1px dashed var(--ink-line); color: var(--ink-text-dim);
-    width:100%; padding: 9px; border-radius: 8px; font-family: var(--font-mono);
-    font-size: 12px; cursor:pointer; margin-top: 4px;
-  }
 
   .sheet-actions{
     display:flex; gap:10px; margin-top: 22px;
@@ -320,12 +387,19 @@
   .btn-ghost{ background: transparent; color: var(--ink-text-dim); border: 1px solid var(--ink-line); flex: 0.6; }
 
   /* ---------- Detail view ---------- */
+  .detail-head-row{ display:flex; gap:14px; align-items:center; margin-bottom: 4px; }
+  .detail-avatar{
+    width: 64px; height: 64px; border-radius: 50%; flex:none;
+    background-size: cover; background-position: center;
+    background-color: var(--teal); color: var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-weight:600; font-size: 24px;
+  }
   .detail-tab{
     font-family: var(--font-mono); font-size: 11px; color: var(--gold);
     text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;
   }
-  .detail-name{ font-family: var(--font-display); font-size: 27px; font-weight:600; margin: 0 0 2px; }
-  .detail-sub{ color: var(--ink-text-dim); font-size: 14px; margin-bottom: 14px; }
+  .detail-name{ font-family: var(--font-display); font-size: 25px; font-weight:600; margin: 0; }
   .detail-section{ margin-top: 18px; }
   .detail-section h4{
     font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
@@ -378,13 +452,17 @@
     <span class="count-badge" id="countBadge">0 people</span>
   </div>
   <div class="search-row">
-    <input type="text" id="searchInput" placeholder="Search name, group, or notes…">
+    <input type="text" id="searchInput" placeholder="Search name, notes, or tags…">
   </div>
   <div class="tag-scroll" id="tagScroll"></div>
 </header>
 
+<div class="cat-manage-row">
+  <button class="add-cat-btn" id="addCategoryBtn">+ New category</button>
+</div>
+
 <main>
-  <div class="grid" id="grid"></div>
+  <div id="categoriesWrap"></div>
   <div class="empty-state" id="emptyState" style="display:none;">
     <div class="glyph">◆</div>
     <h2>No one here yet</h2>
@@ -410,21 +488,28 @@
     <label for="fName">Name</label>
     <input type="text" id="fName" placeholder="Full name">
 
-    <label for="fGroup">Social group</label>
-    <input type="text" id="fGroup" placeholder="e.g. Book club, Work — Marketing, Neighbors">
+    <label>Photo</label>
+    <div class="photo-row">
+      <div class="photo-preview" id="photoPreview">+ Add</div>
+      <input type="file" id="photoInput" accept="image/*" style="display:none;">
+      <div class="photo-actions">
+        <button type="button" class="photo-btn" id="choosePhotoBtn">Choose photo</button>
+        <button type="button" class="photo-btn remove" id="removePhotoBtn" style="display:none;">Remove photo</button>
+      </div>
+    </div>
 
-    <label for="fSpouse">Spouse / partner</label>
-    <input type="text" id="fSpouse" placeholder="Name (free text)">
-
-    <label for="fFamily">Family</label>
-    <textarea id="fFamily" placeholder="Kids, parents, siblings — however you want to note it"></textarea>
+    <label for="fCategory">Category</label>
+    <div class="cat-select-row">
+      <select id="fCategory"><option value="">Uncategorized</option></select>
+      <button type="button" id="newCatFromEdit">+ New</button>
+    </div>
 
     <label for="fTags">Tags</label>
     <input type="text" id="fTags" placeholder="comma, separated, tags">
-    <div class="hint">Used for filtering — e.g. "coworker, hiking, met-2023"</div>
+    <div class="hint">Used for filtering — e.g. "hiking, met-2023"</div>
 
-    <label for="fFacts">Facts to remember</label>
-    <textarea id="fFacts" placeholder="Anything worth remembering — job, hometown, how you met, what they like…"></textarea>
+    <label for="fNotes">Notes</label>
+    <textarea id="fNotes" placeholder="Anything worth remembering — job, hometown, family, how you met, what they like…"></textarea>
 
     <label>Connections</label>
     <div class="conn-list" id="connList"></div>
@@ -448,9 +533,14 @@
       <span></span>
       <button class="icon-btn" id="closeDetail">✕</button>
     </div>
-    <div class="detail-tab" id="dGroup"></div>
-    <div class="detail-name" id="dName"></div>
-    <div class="detail-sub" id="dSpouseFamily"></div>
+
+    <div class="detail-head-row">
+      <div class="detail-avatar" id="dAvatar"></div>
+      <div>
+        <div class="detail-tab" id="dGroup"></div>
+        <div class="detail-name" id="dName"></div>
+      </div>
+    </div>
 
     <div class="detail-section" id="dTagsSection">
       <h4>Tags</h4>
@@ -458,7 +548,7 @@
     </div>
 
     <div class="detail-section" id="dFactsSection">
-      <h4>Facts</h4>
+      <h4>Notes</h4>
       <div class="detail-facts" id="dFacts"></div>
     </div>
 
@@ -481,31 +571,92 @@
   "use strict";
 
   var STORAGE_KEY = "rolodex_people_v1";
+  var CATEGORY_KEY = "rolodex_categories_v1";
+  var COLLAPSE_KEY = "rolodex_collapse_v1";
+  var UNCAT_ID = "__uncat__";
+
   var people = [];
+  var categories = [];
+  var collapseState = {};
   var activeTagFilters = [];
   var editingId = null;
   var pendingConnections = [];
+  var pendingPhoto = null; // dataURL or null
   var detailPersonId = null;
 
   // ---------- Persistence ----------
-  function load(){
+  function loadPeople(){
     try{
       var raw = localStorage.getItem(STORAGE_KEY);
       people = raw ? JSON.parse(raw) : [];
-    }catch(e){
-      people = [];
-    }
+    }catch(e){ people = []; }
   }
-  function save(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(people));
+  function savePeople(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(people)); }
+
+  function loadCategories(){
+    try{
+      var raw = localStorage.getItem(CATEGORY_KEY);
+      categories = raw ? JSON.parse(raw) : [];
+    }catch(e){ categories = []; }
   }
-  function uid(){
-    return 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+  function saveCategories(){ localStorage.setItem(CATEGORY_KEY, JSON.stringify(categories)); }
+
+  function loadCollapse(){
+    try{
+      var raw = localStorage.getItem(COLLAPSE_KEY);
+      collapseState = raw ? JSON.parse(raw) : {};
+    }catch(e){ collapseState = {}; }
+  }
+  function saveCollapse(){ localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapseState)); }
+
+  function uid(prefix){
+    return (prefix||'p') + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
   }
 
   function getPerson(id){
     for(var i=0;i<people.length;i++){ if(people[i].id === id) return people[i]; }
     return null;
+  }
+  function getCategory(id){
+    for(var i=0;i<categories.length;i++){ if(categories[i].id === id) return categories[i]; }
+    return null;
+  }
+
+  // ---------- One-time migration from the previous data shape ----------
+  function migrate(){
+    var changed = false, catsChanged = false;
+    people.forEach(function(p){
+      if(p.notes === undefined){
+        var parts = [];
+        if(p.facts) parts.push(p.facts);
+        if(p.spouse) parts.push('Spouse/partner: ' + p.spouse);
+        if(p.family) parts.push('Family: ' + p.family);
+        p.notes = parts.join('\n\n');
+        delete p.facts; delete p.spouse; delete p.family;
+        changed = true;
+      }
+      if(p.categoryId === undefined){
+        if(p.group && p.group.trim()){
+          p.categoryId = findOrCreateCategory(p.group.trim());
+          catsChanged = true;
+        } else {
+          p.categoryId = null;
+        }
+        delete p.group;
+        changed = true;
+      }
+      if(p.photo === undefined){ p.photo = null; changed = true; }
+    });
+    if(changed) savePeople();
+    if(catsChanged) saveCategories();
+  }
+
+  function findOrCreateCategory(name){
+    var existing = categories.find(function(c){ return c.name.toLowerCase() === name.toLowerCase(); });
+    if(existing) return existing.id;
+    var cat = { id: uid('c'), name: name };
+    categories.push(cat);
+    return cat.id;
   }
 
   // ---------- Toast ----------
@@ -518,12 +669,17 @@
     toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 1800);
   }
 
+  function initials(name){
+    var parts = name.trim().split(/\s+/);
+    var s = parts[0] ? parts[0][0] : '';
+    if(parts.length > 1) s += parts[parts.length-1][0];
+    return s.toUpperCase();
+  }
+
   // ---------- Tag helpers ----------
   function allTags(){
     var set = {};
-    people.forEach(function(p){
-      (p.tags||[]).forEach(function(t){ set[t] = true; });
-    });
+    people.forEach(function(p){ (p.tags||[]).forEach(function(t){ set[t] = true; }); });
     return Object.keys(set).sort(function(a,b){ return a.localeCompare(b); });
   }
 
@@ -531,104 +687,255 @@
     var wrap = document.getElementById('tagScroll');
     var tags = allTags();
     wrap.innerHTML = '';
-    if(tags.length === 0){ return; }
     tags.forEach(function(t){
       var chip = document.createElement('button');
       chip.className = 'tag-chip' + (activeTagFilters.indexOf(t) > -1 ? ' active' : '');
       chip.textContent = t;
       chip.onclick = function(){
         var idx = activeTagFilters.indexOf(t);
-        if(idx > -1){ activeTagFilters.splice(idx,1); }
-        else{ activeTagFilters.push(t); }
+        if(idx > -1){ activeTagFilters.splice(idx,1); } else { activeTagFilters.push(t); }
         renderTagBar();
-        renderGrid();
+        renderAll();
       };
       wrap.appendChild(chip);
     });
   }
 
-  // ---------- Grid ----------
+  // ---------- Filtering ----------
   function matchesSearch(p, q){
     if(!q) return true;
     q = q.toLowerCase();
-    var hay = [p.name, p.group, p.spouse, p.family, p.facts, (p.tags||[]).join(' ')]
-      .filter(Boolean).join(' ').toLowerCase();
+    var hay = [p.name, p.notes, (p.tags||[]).join(' ')].filter(Boolean).join(' ').toLowerCase();
     return hay.indexOf(q) > -1;
   }
-
   function matchesTags(p){
     if(activeTagFilters.length === 0) return true;
     var tags = p.tags || [];
     return activeTagFilters.every(function(t){ return tags.indexOf(t) > -1; });
   }
 
-  function renderGrid(){
-    var grid = document.getElementById('grid');
-    var empty = document.getElementById('emptyState');
+  // ---------- Card ----------
+  function buildAvatar(p, sizeClass){
+    var av = document.createElement('div');
+    av.className = sizeClass;
+    if(p.photo){
+      av.style.backgroundImage = 'url(' + p.photo + ')';
+    } else {
+      av.textContent = initials(p.name || '?');
+    }
+    return av;
+  }
+
+  function buildCard(p){
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.onclick = function(){ openDetail(p.id); };
+
+    var row = document.createElement('div');
+    row.className = 'card-row';
+    row.appendChild(buildAvatar(p, 'avatar'));
+    var h3 = document.createElement('h3');
+    h3.textContent = p.name;
+    row.appendChild(h3);
+    card.appendChild(row);
+
+    if(p.notes){
+      var prev = document.createElement('div');
+      prev.className = 'notes-preview';
+      prev.textContent = p.notes;
+      card.appendChild(prev);
+    }
+
+    if((p.tags||[]).length){
+      var chips = document.createElement('div');
+      chips.className = 'chips';
+      p.tags.slice(0,4).forEach(function(t){
+        var c = document.createElement('span');
+        c.className = 'chip';
+        c.textContent = t;
+        chips.appendChild(c);
+      });
+      card.appendChild(chips);
+    }
+    return card;
+  }
+
+  // ---------- Category accordion ----------
+  function renderAll(){
     var q = document.getElementById('searchInput').value.trim();
+    var filtering = !!q || activeTagFilters.length > 0;
 
-    var visible = people
-      .filter(function(p){ return matchesSearch(p,q) && matchesTags(p); })
-      .sort(function(a,b){ return a.name.localeCompare(b.name); });
+    var visiblePeople = people.filter(function(p){ return matchesSearch(p,q) && matchesTags(p); });
 
-    grid.innerHTML = '';
     document.getElementById('countBadge').textContent =
       people.length + (people.length === 1 ? ' person' : ' people');
+
+    var wrap = document.getElementById('categoriesWrap');
+    var empty = document.getElementById('emptyState');
+    wrap.innerHTML = '';
 
     if(people.length === 0){
       empty.style.display = 'block';
       empty.querySelector('h2').textContent = 'No one here yet';
       empty.querySelector('p').textContent = 'Tap the + button to add the first person you want to remember.';
-      grid.style.display = 'none';
       return;
     }
-    if(visible.length === 0){
+    if(visiblePeople.length === 0){
       empty.style.display = 'block';
       empty.querySelector('h2').textContent = 'No matches';
       empty.querySelector('p').textContent = 'Try clearing the search or tag filters.';
-      grid.style.display = 'none';
       return;
     }
     empty.style.display = 'none';
-    grid.style.display = 'grid';
 
-    visible.forEach(function(p){
-      var card = document.createElement('div');
-      card.className = 'card';
-      card.onclick = function(){ openDetail(p.id); };
+    var sortedCats = categories.slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
+    var groups = sortedCats.map(function(c){ return { id: c.id, name: c.name, deletable: true }; });
+    groups.push({ id: UNCAT_ID, name: 'Uncategorized', deletable: false });
 
-      var tab = document.createElement('div');
-      tab.className = 'tab';
-      tab.textContent = p.group || 'Uncategorized';
-      card.appendChild(tab);
+    groups.forEach(function(g){
+      var members = visiblePeople
+        .filter(function(p){ return (p.categoryId || UNCAT_ID) === g.id; })
+        .sort(function(a,b){ return a.name.localeCompare(b.name); });
+      if(members.length === 0) return;
 
-      var h3 = document.createElement('h3');
-      h3.textContent = p.name;
-      card.appendChild(h3);
+      var section = document.createElement('div');
+      section.className = 'cat-section';
 
-      var metaBits = [];
-      if(p.spouse) metaBits.push('with ' + p.spouse);
-      if(metaBits.length){
-        var meta = document.createElement('div');
-        meta.className = 'meta';
-        meta.textContent = metaBits.join(' · ');
-        card.appendChild(meta);
+      var collapsed = filtering ? false : !!collapseState[g.id];
+
+      var headerEl = document.createElement('div');
+      headerEl.className = 'cat-header';
+      var chevron = document.createElement('span');
+      chevron.className = 'chevron';
+      chevron.textContent = collapsed ? '▸' : '▾';
+      var nameEl = document.createElement('span');
+      nameEl.className = 'cat-name';
+      nameEl.textContent = g.name;
+      var countEl = document.createElement('span');
+      countEl.className = 'cat-count';
+      countEl.textContent = members.length;
+      headerEl.appendChild(chevron);
+      headerEl.appendChild(nameEl);
+      headerEl.appendChild(countEl);
+
+      if(g.deletable){
+        var delBtn = document.createElement('button');
+        delBtn.className = 'cat-del';
+        delBtn.textContent = '✕';
+        delBtn.onclick = function(e){
+          e.stopPropagation();
+          if(!confirm('Delete category "' + g.name + '"? People in it move to Uncategorized.')) return;
+          categories = categories.filter(function(c){ return c.id !== g.id; });
+          people.forEach(function(p){ if(p.categoryId === g.id) p.categoryId = null; });
+          delete collapseState[g.id];
+          saveCategories(); savePeople(); saveCollapse();
+          renderAll();
+          showToast('Category deleted');
+        };
+        headerEl.appendChild(delBtn);
       }
 
-      if((p.tags||[]).length){
-        var chips = document.createElement('div');
-        chips.className = 'chips';
-        p.tags.slice(0,4).forEach(function(t){
-          var c = document.createElement('span');
-          c.className = 'chip';
-          c.textContent = t;
-          chips.appendChild(c);
-        });
-        card.appendChild(chips);
-      }
+      var body = document.createElement('div');
+      body.className = 'cat-body' + (collapsed ? ' collapsed' : '');
+      members.forEach(function(p){ body.appendChild(buildCard(p)); });
 
-      grid.appendChild(card);
+      headerEl.onclick = function(){
+        var nowCollapsed = !body.classList.contains('collapsed');
+        body.classList.toggle('collapsed', nowCollapsed);
+        chevron.textContent = nowCollapsed ? '▸' : '▾';
+        collapseState[g.id] = nowCollapsed;
+        saveCollapse();
+      };
+
+      section.appendChild(headerEl);
+      section.appendChild(body);
+      wrap.appendChild(section);
     });
+  }
+
+  // ---------- Category select (edit sheet) ----------
+  function populateCategorySelect(selectedId){
+    var sel = document.getElementById('fCategory');
+    sel.innerHTML = '<option value="">Uncategorized</option>';
+    categories.slice().sort(function(a,b){ return a.name.localeCompare(b.name); }).forEach(function(c){
+      var opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+    sel.value = selectedId || '';
+  }
+
+  function promptNewCategory(){
+    var name = window.prompt('New category name:');
+    if(!name) return null;
+    name = name.trim();
+    if(!name) return null;
+    var id = findOrCreateCategory(name);
+    saveCategories();
+    return id;
+  }
+
+  document.getElementById('addCategoryBtn').onclick = function(){
+    var id = promptNewCategory();
+    if(id){ renderAll(); showToast('Category added'); }
+  };
+
+  document.getElementById('newCatFromEdit').onclick = function(){
+    var id = promptNewCategory();
+    if(id){
+      populateCategorySelect(id);
+    }
+  };
+
+  // ---------- Photo picker ----------
+  var choosePhotoBtn = document.getElementById('choosePhotoBtn');
+  var photoInput = document.getElementById('photoInput');
+  var photoPreview = document.getElementById('photoPreview');
+  var removePhotoBtn = document.getElementById('removePhotoBtn');
+
+  choosePhotoBtn.onclick = function(){ photoInput.click(); };
+  photoPreview.onclick = function(){ photoInput.click(); };
+
+  photoInput.onchange = function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      var img = new Image();
+      img.onload = function(){
+        var MAX = 480;
+        var w = img.width, h = img.height;
+        if(w > h && w > MAX){ h = Math.round(h * (MAX/w)); w = MAX; }
+        else if(h > MAX){ w = Math.round(w * (MAX/h)); h = MAX; }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        pendingPhoto = canvas.toDataURL('image/jpeg', 0.82);
+        applyPhotoPreview();
+      };
+      img.onerror = function(){ showToast('Could not read that image'); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  removePhotoBtn.onclick = function(){
+    pendingPhoto = null;
+    applyPhotoPreview();
+  };
+
+  function applyPhotoPreview(){
+    if(pendingPhoto){
+      photoPreview.style.backgroundImage = 'url(' + pendingPhoto + ')';
+      photoPreview.textContent = '';
+      removePhotoBtn.style.display = 'block';
+    } else {
+      photoPreview.style.backgroundImage = '';
+      photoPreview.textContent = '+ Add';
+      removePhotoBtn.style.display = 'none';
+    }
   }
 
   // ---------- Edit sheet ----------
@@ -672,18 +979,20 @@
     });
   }
 
-  function openEditSheet(id){
+  function openEditSheet(id, presetCategoryId){
     editingId = id || null;
     var p = id ? getPerson(id) : null;
 
     document.getElementById('editTitle').textContent = p ? 'Edit ' + p.name : 'New person';
     document.getElementById('fName').value = p ? p.name : '';
-    document.getElementById('fGroup').value = p ? (p.group||'') : '';
-    document.getElementById('fSpouse').value = p ? (p.spouse||'') : '';
-    document.getElementById('fFamily').value = p ? (p.family||'') : '';
     document.getElementById('fTags').value = p ? (p.tags||[]).join(', ') : '';
-    document.getElementById('fFacts').value = p ? (p.facts||'') : '';
+    document.getElementById('fNotes').value = p ? (p.notes||'') : '';
     document.getElementById('deleteBtn').style.display = p ? 'block' : 'none';
+
+    pendingPhoto = p ? (p.photo || null) : null;
+    applyPhotoPreview();
+
+    populateCategorySelect(p ? p.categoryId : (presetCategoryId || ''));
 
     pendingConnections = p ? (p.connections||[]).map(function(c){ return {targetId:c.targetId, label:c.label}; }) : [];
     populateConnPersonSelect(id);
@@ -718,14 +1027,15 @@
     var tags = document.getElementById('fTags').value
       .split(',').map(function(t){ return t.trim(); }).filter(Boolean);
 
+    var catVal = document.getElementById('fCategory').value;
+
     var record = {
-      id: editingId || uid(),
+      id: editingId || uid('p'),
       name: name,
-      group: document.getElementById('fGroup').value.trim(),
-      spouse: document.getElementById('fSpouse').value.trim(),
-      family: document.getElementById('fFamily').value.trim(),
+      categoryId: catVal || null,
       tags: tags,
-      facts: document.getElementById('fFacts').value.trim(),
+      notes: document.getElementById('fNotes').value.trim(),
+      photo: pendingPhoto,
       connections: pendingConnections.slice()
     };
 
@@ -737,15 +1047,14 @@
     }
 
     syncReciprocalConnections(record);
-    save();
+    savePeople();
     renderTagBar();
-    renderGrid();
+    renderAll();
     closeEditSheet();
     showToast('Saved');
   };
 
-  // Keep the other side of a link in sync (if A links to B as "spouse",
-  // B should show a link back to A too, unless already present).
+  // Keep the other side of a link in sync.
   function syncReciprocalConnections(record){
     record.connections.forEach(function(c){
       var target = getPerson(c.targetId);
@@ -762,13 +1071,12 @@
     if(!editingId) return;
     if(!confirm('Delete this person? This can\'t be undone.')) return;
     people = people.filter(function(p){ return p.id !== editingId; });
-    // remove dangling connections pointing at the deleted person
     people.forEach(function(p){
       p.connections = (p.connections||[]).filter(function(c){ return c.targetId !== editingId; });
     });
-    save();
+    savePeople();
     renderTagBar();
-    renderGrid();
+    renderAll();
     closeEditSheet();
     showToast('Deleted');
   };
@@ -781,14 +1089,18 @@
     if(!p) return;
     detailPersonId = id;
 
-    document.getElementById('dGroup').textContent = p.group || 'Uncategorized';
+    var cat = p.categoryId ? getCategory(p.categoryId) : null;
+    document.getElementById('dGroup').textContent = cat ? cat.name : 'Uncategorized';
     document.getElementById('dName').textContent = p.name;
 
-    var subBits = [];
-    if(p.spouse) subBits.push('Spouse/partner: ' + p.spouse);
-    if(p.family) subBits.push(p.family);
-    document.getElementById('dSpouseFamily').textContent = subBits.join(' · ');
-    document.getElementById('dSpouseFamily').style.display = subBits.length ? 'block' : 'none';
+    var avatarWrap = document.getElementById('dAvatar');
+    avatarWrap.innerHTML = '';
+    avatarWrap.style.backgroundImage = '';
+    if(p.photo){
+      avatarWrap.style.backgroundImage = 'url(' + p.photo + ')';
+    } else {
+      avatarWrap.textContent = initials(p.name || '?');
+    }
 
     var tagsSection = document.getElementById('dTagsSection');
     var tagsWrap = document.getElementById('dTags');
@@ -806,9 +1118,9 @@
     }
 
     var factsSection = document.getElementById('dFactsSection');
-    if(p.facts){
+    if(p.notes){
       factsSection.style.display = 'block';
-      document.getElementById('dFacts').textContent = p.facts;
+      document.getElementById('dFacts').textContent = p.notes;
     } else {
       factsSection.style.display = 'none';
     }
@@ -817,33 +1129,31 @@
     var connWrap = document.getElementById('dConnList');
     connWrap.innerHTML = '';
     var conns = p.connections || [];
-    if(conns.length){
-      connSection.style.display = 'block';
-      conns.forEach(function(c){
-        var target = getPerson(c.targetId);
-        if(!target) return;
-        var row = document.createElement('div');
-        row.className = 'link-card';
-        row.onclick = function(){ openDetail(target.id); };
-        var left = document.createElement('div');
-        var rel = document.createElement('div');
-        rel.className = 'rel';
-        rel.textContent = c.label || 'connected';
-        var nm = document.createElement('div');
-        nm.className = 'nm';
-        nm.textContent = target.name;
-        left.appendChild(rel);
-        left.appendChild(nm);
-        var arrow = document.createElement('div');
-        arrow.className = 'arrow';
-        arrow.textContent = '→';
-        row.appendChild(left);
-        row.appendChild(arrow);
-        connWrap.appendChild(row);
-      });
-    } else {
-      connSection.style.display = 'none';
-    }
+    var anyRendered = false;
+    conns.forEach(function(c){
+      var target = getPerson(c.targetId);
+      if(!target) return;
+      anyRendered = true;
+      var row = document.createElement('div');
+      row.className = 'link-card';
+      row.onclick = function(){ openDetail(target.id); };
+      var left = document.createElement('div');
+      var rel = document.createElement('div');
+      rel.className = 'rel';
+      rel.textContent = c.label || 'connected';
+      var nm = document.createElement('div');
+      nm.className = 'nm';
+      nm.textContent = target.name;
+      left.appendChild(rel);
+      left.appendChild(nm);
+      var arrow = document.createElement('div');
+      arrow.className = 'arrow';
+      arrow.textContent = '→';
+      row.appendChild(left);
+      row.appendChild(arrow);
+      connWrap.appendChild(row);
+    });
+    connSection.style.display = anyRendered ? 'block' : 'none';
 
     detailOverlay.classList.add('open');
   }
@@ -863,11 +1173,12 @@
   };
 
   // ---------- Search ----------
-  document.getElementById('searchInput').addEventListener('input', renderGrid);
+  document.getElementById('searchInput').addEventListener('input', renderAll);
 
   // ---------- Backup / restore ----------
   document.getElementById('exportBtn').onclick = function(){
-    var blob = new Blob([JSON.stringify(people, null, 2)], {type:'application/json'});
+    var payload = { people: people, categories: categories };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
@@ -889,14 +1200,25 @@
     reader.onload = function(){
       try{
         var data = JSON.parse(reader.result);
-        if(!Array.isArray(data)) throw new Error('bad format');
-        if(people.length > 0){
-          if(!confirm('This will replace your current ' + people.length + ' entries with ' + data.length + ' from the backup. Continue?')) return;
+        var newPeople, newCats;
+        if(Array.isArray(data)){
+          // old-format backup (people array only)
+          newPeople = data; newCats = categories;
+        } else if(data && Array.isArray(data.people)){
+          newPeople = data.people; newCats = Array.isArray(data.categories) ? data.categories : [];
+        } else {
+          throw new Error('bad format');
         }
-        people = data;
-        save();
+        if(people.length > 0){
+          if(!confirm('This will replace your current ' + people.length + ' entries with ' + newPeople.length + ' from the backup. Continue?')) return;
+        }
+        people = newPeople;
+        categories = newCats;
+        migrate();
+        savePeople();
+        saveCategories();
         renderTagBar();
-        renderGrid();
+        renderAll();
         showToast('Backup restored');
       }catch(err){
         showToast('Could not read that file');
@@ -914,9 +1236,12 @@
   }
 
   // ---------- Init ----------
-  load();
+  loadCategories();
+  loadPeople();
+  loadCollapse();
+  migrate();
   renderTagBar();
-  renderGrid();
+  renderAll();
 })();
 </script>
 </body>
