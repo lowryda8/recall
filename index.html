@@ -316,6 +316,20 @@
     margin: 16px 0 6px;
   }
   label:first-of-type{ margin-top:0; }
+  .tag-input-wrap{ position: relative; }
+  .tag-suggest{
+    position: absolute; left:0; right:0; top: calc(100% + 4px);
+    background: var(--ink); border: 1px solid var(--ink-line);
+    border-radius: 8px; overflow: hidden; z-index: 5;
+    display: none; max-height: 180px; overflow-y: auto;
+  }
+  .tag-suggest.open{ display:block; }
+  .tag-suggest .opt{
+    padding: 9px 12px; font-size: 14px; cursor: pointer;
+    border-bottom: 1px solid var(--ink-line);
+  }
+  .tag-suggest .opt:last-child{ border-bottom: none; }
+  .tag-suggest .opt:active, .tag-suggest .opt.hl{ background: var(--ink-line); }
   input[type="text"], textarea, select{
     width:100%;
     background: var(--ink);
@@ -504,9 +518,15 @@
       <button type="button" id="newCatFromEdit">+ New</button>
     </div>
 
+    <label for="fMetDate">Date met</label>
+    <input type="date" id="fMetDate">
+
     <label for="fTags">Tags</label>
-    <input type="text" id="fTags" placeholder="comma, separated, tags">
-    <div class="hint">Used for filtering — e.g. "hiking, met-2023"</div>
+    <div class="tag-input-wrap">
+      <input type="text" id="fTags" placeholder="comma, separated, tags" autocomplete="off">
+      <div class="tag-suggest" id="tagSuggest"></div>
+    </div>
+    <div class="hint">Used for filtering — e.g. "hiking, met-2023". Start typing to see matching tags.</div>
 
     <label for="fNotes">Notes</label>
     <textarea id="fNotes" placeholder="Anything worth remembering — job, hometown, family, how you met, what they like…"></textarea>
@@ -542,6 +562,11 @@
       </div>
     </div>
 
+    <div class="detail-section" id="dMetSection">
+      <h4>Met</h4>
+      <div class="detail-facts" id="dMet"></div>
+    </div>
+
     <div class="detail-section" id="dTagsSection">
       <h4>Tags</h4>
       <div class="detail-chips" id="dTags"></div>
@@ -560,6 +585,22 @@
     <div class="sheet-actions">
       <button class="btn btn-ghost" id="editFromDetail">Edit</button>
       <button class="btn btn-primary" id="closeDetailBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- New category prompt -->
+<div class="overlay" id="catPromptOverlay">
+  <div class="sheet" style="max-width:380px;">
+    <div class="sheet-head">
+      <h2>New category</h2>
+      <button class="icon-btn" id="closeCatPrompt">✕</button>
+    </div>
+    <label for="catPromptInput">Category name</label>
+    <input type="text" id="catPromptInput" placeholder="e.g. Book club">
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="catPromptCancel">Cancel</button>
+      <button class="btn btn-primary" id="catPromptConfirm">Add</button>
     </div>
   </div>
 </div>
@@ -646,6 +687,7 @@
         changed = true;
       }
       if(p.photo === undefined){ p.photo = null; changed = true; }
+      if(p.metDate === undefined){ p.metDate = null; changed = true; }
     });
     if(changed) savePeople();
     if(catsChanged) saveCategories();
@@ -674,6 +716,22 @@
     var s = parts[0] ? parts[0][0] : '';
     if(parts.length > 1) s += parts[parts.length-1][0];
     return s.toUpperCase();
+  }
+
+  function todayStr(){
+    var d = new Date();
+    var mm = String(d.getMonth()+1).padStart(2,'0');
+    var dd = String(d.getDate()).padStart(2,'0');
+    return d.getFullYear() + '-' + mm + '-' + dd;
+  }
+
+  function formatDateStr(dateStr){
+    if(!dateStr) return '';
+    var parts = dateStr.split('-');
+    if(parts.length !== 3) return dateStr;
+    var d = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+    if(isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
   }
 
   // ---------- Tag helpers ----------
@@ -866,26 +924,51 @@
     sel.value = selectedId || '';
   }
 
-  function promptNewCategory(){
-    var name = window.prompt('New category name:');
-    if(!name) return null;
-    name = name.trim();
-    if(!name) return null;
+  // Custom "new category" modal. iOS Safari does not show window.prompt()
+  // dialogs when the app is running standalone (added to the home screen),
+  // so category creation needs its own in-page UI instead.
+  var catPromptOverlay = document.getElementById('catPromptOverlay');
+  var catPromptInput = document.getElementById('catPromptInput');
+  var catPromptCallback = null;
+
+  function openCategoryPrompt(onConfirm){
+    catPromptCallback = onConfirm;
+    catPromptInput.value = '';
+    catPromptOverlay.classList.add('open');
+    setTimeout(function(){ catPromptInput.focus(); }, 50);
+  }
+  function closeCategoryPrompt(){
+    catPromptOverlay.classList.remove('open');
+    catPromptCallback = null;
+  }
+  function confirmCategoryPrompt(){
+    var name = catPromptInput.value.trim();
+    if(!name){ closeCategoryPrompt(); return; }
     var id = findOrCreateCategory(name);
     saveCategories();
-    return id;
+    var cb = catPromptCallback;
+    closeCategoryPrompt();
+    if(cb) cb(id);
   }
 
+  document.getElementById('catPromptConfirm').onclick = confirmCategoryPrompt;
+  document.getElementById('catPromptCancel').onclick = closeCategoryPrompt;
+  document.getElementById('closeCatPrompt').onclick = closeCategoryPrompt;
+  catPromptOverlay.addEventListener('click', function(e){ if(e.target === catPromptOverlay) closeCategoryPrompt(); });
+  catPromptInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); confirmCategoryPrompt(); }
+  });
+
   document.getElementById('addCategoryBtn').onclick = function(){
-    var id = promptNewCategory();
-    if(id){ renderAll(); showToast('Category added'); }
+    openCategoryPrompt(function(id){
+      if(id){ renderAll(); showToast('Category added'); }
+    });
   };
 
   document.getElementById('newCatFromEdit').onclick = function(){
-    var id = promptNewCategory();
-    if(id){
-      populateCategorySelect(id);
-    }
+    openCategoryPrompt(function(id){
+      if(id){ populateCategorySelect(id); }
+    });
   };
 
   // ---------- Photo picker ----------
@@ -938,6 +1021,56 @@
     }
   }
 
+  // ---------- Tag autocomplete ----------
+  var fTagsInput = document.getElementById('fTags');
+  var tagSuggestEl = document.getElementById('tagSuggest');
+
+  function currentTagFragment(){
+    var val = fTagsInput.value;
+    var lastComma = val.lastIndexOf(',');
+    return {
+      before: lastComma > -1 ? val.slice(0, lastComma + 1) : '',
+      fragment: (lastComma > -1 ? val.slice(lastComma + 1) : val)
+    };
+  }
+
+  function renderTagSuggestions(){
+    var parts = currentTagFragment();
+    var frag = parts.fragment.trim().toLowerCase();
+    if(!frag){ tagSuggestEl.classList.remove('open'); tagSuggestEl.innerHTML=''; return; }
+
+    var alreadyUsed = fTagsInput.value.split(',').map(function(t){ return t.trim().toLowerCase(); });
+    var matches = allTags().filter(function(t){
+      var lower = t.toLowerCase();
+      return lower.indexOf(frag) > -1 && alreadyUsed.indexOf(lower) === -1;
+    }).slice(0, 6);
+
+    if(matches.length === 0){ tagSuggestEl.classList.remove('open'); tagSuggestEl.innerHTML=''; return; }
+
+    tagSuggestEl.innerHTML = '';
+    matches.forEach(function(t){
+      var opt = document.createElement('div');
+      opt.className = 'opt';
+      opt.textContent = t;
+      opt.onmousedown = function(e){ e.preventDefault(); }; // keep focus in input
+      opt.onclick = function(){
+        var p = currentTagFragment();
+        fTagsInput.value = p.before + (p.before ? ' ' : '') + t + ', ';
+        tagSuggestEl.classList.remove('open');
+        tagSuggestEl.innerHTML = '';
+        fTagsInput.focus();
+      };
+      tagSuggestEl.appendChild(opt);
+    });
+    tagSuggestEl.classList.add('open');
+  }
+
+  fTagsInput.addEventListener('input', renderTagSuggestions);
+  fTagsInput.addEventListener('focus', renderTagSuggestions);
+  fTagsInput.addEventListener('blur', function(){
+    setTimeout(function(){ tagSuggestEl.classList.remove('open'); tagSuggestEl.innerHTML=''; }, 120);
+  });
+
   // ---------- Edit sheet ----------
   var editOverlay = document.getElementById('editOverlay');
 
@@ -985,7 +1118,10 @@
 
     document.getElementById('editTitle').textContent = p ? 'Edit ' + p.name : 'New person';
     document.getElementById('fName').value = p ? p.name : '';
+    document.getElementById('fMetDate').value = p ? (p.metDate || '') : todayStr();
     document.getElementById('fTags').value = p ? (p.tags||[]).join(', ') : '';
+    tagSuggestEl.classList.remove('open');
+    tagSuggestEl.innerHTML = '';
     document.getElementById('fNotes').value = p ? (p.notes||'') : '';
     document.getElementById('deleteBtn').style.display = p ? 'block' : 'none';
 
@@ -1033,6 +1169,7 @@
       id: editingId || uid('p'),
       name: name,
       categoryId: catVal || null,
+      metDate: document.getElementById('fMetDate').value || null,
       tags: tags,
       notes: document.getElementById('fNotes').value.trim(),
       photo: pendingPhoto,
@@ -1100,6 +1237,14 @@
       avatarWrap.style.backgroundImage = 'url(' + p.photo + ')';
     } else {
       avatarWrap.textContent = initials(p.name || '?');
+    }
+
+    var metSection = document.getElementById('dMetSection');
+    if(p.metDate){
+      metSection.style.display = 'block';
+      document.getElementById('dMet').textContent = formatDateStr(p.metDate);
+    } else {
+      metSection.style.display = 'none';
     }
 
     var tagsSection = document.getElementById('dTagsSection');
