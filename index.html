@@ -126,18 +126,18 @@
 
   /* ---------- Category management row ---------- */
   .cat-manage-row{
-    display:flex; justify-content: flex-end;
+    display:flex; justify-content: space-between; gap:8px;
     max-width: 760px; margin: 0 auto 12px;
     padding: 0 16px;
   }
-  .add-cat-btn{
+  .add-cat-btn, .map-btn{
     font-family: var(--font-mono); font-size: 12px;
     padding: 7px 12px; border-radius: 20px;
     border: 1px dashed var(--ink-line);
     background: transparent; color: var(--ink-text-dim);
     cursor: pointer;
   }
-  .add-cat-btn:active{ background: var(--ink-soft); }
+  .add-cat-btn:active, .map-btn:active{ background: var(--ink-soft); }
 
   /* ---------- Category sections ---------- */
   main{
@@ -235,6 +235,13 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  .card .rel-preview{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--teal);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
   .card .chips{ display:flex; flex-wrap:wrap; gap:4px; }
   .card .chip{
     font-family: var(--font-mono);
@@ -330,7 +337,7 @@
   }
   .tag-suggest .opt:last-child{ border-bottom: none; }
   .tag-suggest .opt:active, .tag-suggest .opt.hl{ background: var(--ink-line); }
-  input[type="text"], textarea, select{
+  input[type="text"], input[type="date"], textarea, select{
     width:100%;
     background: var(--ink);
     border: 1px solid var(--ink-line);
@@ -370,13 +377,23 @@
     border-radius: 8px; padding: 0 14px; font-size: 13px; cursor:pointer;
   }
 
-  .conn-row{ display:flex; gap:8px; margin-bottom:8px; }
-  .conn-row select{ flex: 1.3; }
-  .conn-row input{ flex: 1; }
+  /* Gender toggle */
+  .gender-row{ display:flex; gap:8px; }
+  .gender-btn{
+    flex:1; padding: 10px; border-radius: 8px;
+    border: 1px solid var(--ink-line); background: var(--ink);
+    color: var(--ink-text-dim); font-family: var(--font-body);
+    font-weight: 600; font-size: 14px; cursor:pointer;
+  }
+  .gender-btn.active{ background: var(--teal-bright); border-color: var(--teal-bright); color: #0d1512; }
+
+  .conn-row{ display:flex; gap:8px; margin-bottom:8px; align-items:flex-start; }
+  .conn-row select{ flex: 1.2; }
+  .conn-row .rel-label-wrap{ position: relative; flex: 1; }
   .conn-row button{
     flex: none;
     background: var(--ink-line); border:none; color: var(--ink-text);
-    border-radius: 8px; width: 38px; font-size: 18px; cursor:pointer;
+    border-radius: 8px; width: 38px; height: 38px; font-size: 18px; cursor:pointer;
   }
   .conn-list{ margin: 6px 0 4px; }
   .conn-list .conn-item{
@@ -437,6 +454,30 @@
   .link-card .nm{ font-size: 15px; margin-top:1px; }
   .link-card .arrow{ color: var(--ink-text-dim); }
 
+  /* ---------- Relationship map ---------- */
+  .map-view{
+    position: fixed; inset:0; background: var(--ink);
+    z-index: 60; display:none; flex-direction: column;
+  }
+  .map-view.open{ display:flex; }
+  .map-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 14px 16px; padding-top: calc(14px + env(safe-area-inset-top));
+    border-bottom: 1px solid var(--ink-line); flex: none;
+  }
+  .map-head h2{ font-family: var(--font-display); font-size: 19px; margin:0; font-weight:600; }
+  .map-scroll{ flex:1; overflow:auto; -webkit-overflow-scrolling: touch; }
+  .map-empty{ padding: 90px 24px; text-align:center; color: var(--ink-text-dim); }
+  .map-empty .glyph{ font-size: 34px; margin-bottom: 10px; }
+  .map-empty h2{ font-family: var(--font-display); font-size: 19px; color: var(--ink-text); margin:0 0 6px; font-weight:500; }
+  .map-empty p{ margin:0; font-size: 14px; line-height:1.5; }
+  .map-unlinked{ padding: 6px 16px 30px; }
+  .map-unlinked h4{
+    font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--ink-text-dim); margin: 12px 0 8px;
+  }
+  .map-unlinked .chips{ display:flex; flex-wrap:wrap; gap:6px; }
+
   .toast{
     position: fixed; left:50%; bottom: 100px; transform: translateX(-50%);
     background: var(--paper); color: var(--paper-text);
@@ -472,6 +513,7 @@
 </header>
 
 <div class="cat-manage-row">
+  <button class="map-btn" id="mapBtn">🕸 Relationship map</button>
   <button class="add-cat-btn" id="addCategoryBtn">+ New category</button>
 </div>
 
@@ -512,6 +554,12 @@
       </div>
     </div>
 
+    <label>Sex</label>
+    <div class="gender-row">
+      <button type="button" class="gender-btn" id="genderM">M</button>
+      <button type="button" class="gender-btn" id="genderF">F</button>
+    </div>
+
     <label for="fCategory">Category</label>
     <div class="cat-select-row">
       <select id="fCategory"><option value="">Uncategorized</option></select>
@@ -535,7 +583,10 @@
     <div class="conn-list" id="connList"></div>
     <div class="conn-row">
       <select id="connPerson"></select>
-      <input type="text" id="connLabel" placeholder="relationship (e.g. sister)">
+      <div class="rel-label-wrap">
+        <input type="text" id="connLabel" placeholder="relationship (e.g. sister)" autocomplete="off">
+        <div class="tag-suggest" id="relLabelSuggest"></div>
+      </div>
       <button id="connAdd" type="button">+</button>
     </div>
 
@@ -605,6 +656,23 @@
   </div>
 </div>
 
+<!-- Relationship map -->
+<div class="map-view" id="mapOverlay">
+  <div class="map-head">
+    <h2>Relationship map</h2>
+    <button class="icon-btn" id="closeMap">✕</button>
+  </div>
+  <div class="map-scroll" id="mapScroll">
+    <div class="map-empty" id="mapEmpty" style="display:none;">
+      <div class="glyph">🕸</div>
+      <h2>No connections yet</h2>
+      <p>Open a person and link them to someone else — connections you add will show up here.</p>
+    </div>
+    <svg id="mapSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="map-unlinked" id="mapUnlinkedWrap" style="display:none;"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -613,16 +681,19 @@
 
   var STORAGE_KEY = "rolodex_people_v1";
   var CATEGORY_KEY = "rolodex_categories_v1";
+  var RELATIONSHIP_KEY = "rolodex_relationships_v1";
   var COLLAPSE_KEY = "rolodex_collapse_v1";
   var UNCAT_ID = "__uncat__";
 
   var people = [];
   var categories = [];
+  var relationships = []; // { id, a: personId, b: personId, label }
   var collapseState = {};
   var activeTagFilters = [];
   var editingId = null;
-  var pendingConnections = [];
+  var pendingConnections = []; // { relId: existing relationship id or null, targetId, label }
   var pendingPhoto = null; // dataURL or null
+  var pendingGender = null; // 'M' | 'F' | null
   var detailPersonId = null;
 
   // ---------- Persistence ----------
@@ -641,6 +712,14 @@
     }catch(e){ categories = []; }
   }
   function saveCategories(){ localStorage.setItem(CATEGORY_KEY, JSON.stringify(categories)); }
+
+  function loadRelationships(){
+    try{
+      var raw = localStorage.getItem(RELATIONSHIP_KEY);
+      relationships = raw ? JSON.parse(raw) : [];
+    }catch(e){ relationships = []; }
+  }
+  function saveRelationships(){ localStorage.setItem(RELATIONSHIP_KEY, JSON.stringify(relationships)); }
 
   function loadCollapse(){
     try{
@@ -663,9 +742,22 @@
     return null;
   }
 
-  // ---------- One-time migration from the previous data shape ----------
+  // ---------- Relationship helpers ----------
+  function relationshipsForPerson(id){
+    return relationships.filter(function(r){ return r.a === id || r.b === id; });
+  }
+  function otherPersonId(r, id){ return r.a === id ? r.b : r.a; }
+  function allRelationshipLabels(){
+    var set = {};
+    relationships.forEach(function(r){ if(r.label) set[r.label] = true; });
+    return Object.keys(set).sort(function(a,b){ return a.localeCompare(b); });
+  }
+
+  // ---------- One-time migration from previous data shapes ----------
   function migrate(){
-    var changed = false, catsChanged = false;
+    var changed = false, catsChanged = false, relsChanged = false;
+    var legacyConns = [];
+
     people.forEach(function(p){
       if(p.notes === undefined){
         var parts = [];
@@ -688,9 +780,34 @@
       }
       if(p.photo === undefined){ p.photo = null; changed = true; }
       if(p.metDate === undefined){ p.metDate = null; changed = true; }
+      if(p.gender === undefined){ p.gender = null; changed = true; }
+      if(Array.isArray(p.connections)){
+        p.connections.forEach(function(c){
+          if(c && c.targetId) legacyConns.push({ a: p.id, b: c.targetId, label: c.label || '' });
+        });
+        delete p.connections;
+        changed = true;
+      }
     });
+
+    if(legacyConns.length){
+      var pairMap = {};
+      legacyConns.forEach(function(item){
+        var key = [item.a, item.b].sort().join('|');
+        if(!pairMap[key] || (!pairMap[key].label && item.label)){
+          pairMap[key] = item;
+        }
+      });
+      Object.keys(pairMap).forEach(function(key){
+        var item = pairMap[key];
+        relationships.push({ id: uid('r'), a: item.a, b: item.b, label: item.label });
+      });
+      relsChanged = true;
+    }
+
     if(changed) savePeople();
     if(catsChanged) saveCategories();
+    if(relsChanged) saveRelationships();
   }
 
   function findOrCreateCategory(name){
@@ -802,6 +919,22 @@
       prev.className = 'notes-preview';
       prev.textContent = p.notes;
       card.appendChild(prev);
+    }
+
+    var rels = relationshipsForPerson(p.id);
+    if(rels.length){
+      var names = rels.map(function(r){
+        var other = getPerson(otherPersonId(r, p.id));
+        return other ? other.name : null;
+      }).filter(Boolean);
+      if(names.length){
+        var relPrev = document.createElement('div');
+        relPrev.className = 'rel-preview';
+        var shown = names.slice(0,3).join(', ');
+        var extra = names.length > 3 ? ' +' + (names.length-3) : '';
+        relPrev.textContent = '🔗 ' + shown + extra;
+        card.appendChild(relPrev);
+      }
     }
 
     if((p.tags||[]).length){
@@ -1021,6 +1154,20 @@
     }
   }
 
+  // ---------- Gender toggle ----------
+  var genderMBtn = document.getElementById('genderM');
+  var genderFBtn = document.getElementById('genderF');
+  function updateGenderButtons(){
+    genderMBtn.classList.toggle('active', pendingGender === 'M');
+    genderFBtn.classList.toggle('active', pendingGender === 'F');
+  }
+  function setGender(val){
+    pendingGender = (pendingGender === val) ? null : val;
+    updateGenderButtons();
+  }
+  genderMBtn.onclick = function(){ setGender('M'); };
+  genderFBtn.onclick = function(){ setGender('F'); };
+
   // ---------- Tag autocomplete ----------
   var fTagsInput = document.getElementById('fTags');
   var tagSuggestEl = document.getElementById('tagSuggest');
@@ -1052,7 +1199,7 @@
       var opt = document.createElement('div');
       opt.className = 'opt';
       opt.textContent = t;
-      opt.onmousedown = function(e){ e.preventDefault(); }; // keep focus in input
+      opt.onmousedown = function(e){ e.preventDefault(); };
       opt.onclick = function(){
         var p = currentTagFragment();
         fTagsInput.value = p.before + (p.before ? ' ' : '') + t + ', ';
@@ -1069,6 +1216,43 @@
   fTagsInput.addEventListener('focus', renderTagSuggestions);
   fTagsInput.addEventListener('blur', function(){
     setTimeout(function(){ tagSuggestEl.classList.remove('open'); tagSuggestEl.innerHTML=''; }, 120);
+  });
+
+  // ---------- Relationship-label autocomplete ----------
+  var connLabelInput = document.getElementById('connLabel');
+  var relLabelSuggestEl = document.getElementById('relLabelSuggest');
+
+  function renderRelLabelSuggestions(){
+    var val = connLabelInput.value.trim().toLowerCase();
+    if(!val){ relLabelSuggestEl.classList.remove('open'); relLabelSuggestEl.innerHTML=''; return; }
+
+    var matches = allRelationshipLabels().filter(function(l){
+      return l.toLowerCase().indexOf(val) > -1;
+    }).slice(0, 6);
+
+    if(matches.length === 0){ relLabelSuggestEl.classList.remove('open'); relLabelSuggestEl.innerHTML=''; return; }
+
+    relLabelSuggestEl.innerHTML = '';
+    matches.forEach(function(l){
+      var opt = document.createElement('div');
+      opt.className = 'opt';
+      opt.textContent = l;
+      opt.onmousedown = function(e){ e.preventDefault(); };
+      opt.onclick = function(){
+        connLabelInput.value = l;
+        relLabelSuggestEl.classList.remove('open');
+        relLabelSuggestEl.innerHTML = '';
+        connLabelInput.focus();
+      };
+      relLabelSuggestEl.appendChild(opt);
+    });
+    relLabelSuggestEl.classList.add('open');
+  }
+
+  connLabelInput.addEventListener('input', renderRelLabelSuggestions);
+  connLabelInput.addEventListener('focus', renderRelLabelSuggestions);
+  connLabelInput.addEventListener('blur', function(){
+    setTimeout(function(){ relLabelSuggestEl.classList.remove('open'); relLabelSuggestEl.innerHTML=''; }, 120);
   });
 
   // ---------- Edit sheet ----------
@@ -1128,9 +1312,19 @@
     pendingPhoto = p ? (p.photo || null) : null;
     applyPhotoPreview();
 
+    pendingGender = p ? (p.gender || null) : null;
+    updateGenderButtons();
+
     populateCategorySelect(p ? p.categoryId : (presetCategoryId || ''));
 
-    pendingConnections = p ? (p.connections||[]).map(function(c){ return {targetId:c.targetId, label:c.label}; }) : [];
+    pendingConnections = p
+      ? relationshipsForPerson(id).map(function(r){
+          return { relId: r.id, targetId: otherPersonId(r, id), label: r.label };
+        })
+      : [];
+    document.getElementById('connLabel').value = '';
+    relLabelSuggestEl.classList.remove('open');
+    relLabelSuggestEl.innerHTML = '';
     populateConnPersonSelect(id);
     renderConnList();
 
@@ -1151,8 +1345,10 @@
     var sel = document.getElementById('connPerson');
     var labelInput = document.getElementById('connLabel');
     if(!sel.value) return;
-    pendingConnections.push({ targetId: sel.value, label: labelInput.value.trim() });
+    pendingConnections.push({ relId: null, targetId: sel.value, label: labelInput.value.trim() });
     labelInput.value = '';
+    relLabelSuggestEl.classList.remove('open');
+    relLabelSuggestEl.innerHTML = '';
     renderConnList();
   };
 
@@ -1164,16 +1360,17 @@
       .split(',').map(function(t){ return t.trim(); }).filter(Boolean);
 
     var catVal = document.getElementById('fCategory').value;
+    var personId = editingId || uid('p');
 
     var record = {
-      id: editingId || uid('p'),
+      id: personId,
       name: name,
       categoryId: catVal || null,
+      gender: pendingGender,
       metDate: document.getElementById('fMetDate').value || null,
       tags: tags,
       notes: document.getElementById('fNotes').value.trim(),
-      photo: pendingPhoto,
-      connections: pendingConnections.slice()
+      photo: pendingPhoto
     };
 
     if(editingId){
@@ -1183,7 +1380,21 @@
       people.push(record);
     }
 
-    syncReciprocalConnections(record);
+    // Reconcile the relationship table against what's left in pendingConnections:
+    // anything involving this person that's no longer listed gets dropped,
+    // anything new (relId === null) gets created.
+    var keepRelIds = pendingConnections.filter(function(c){ return c.relId; }).map(function(c){ return c.relId; });
+    relationships = relationships.filter(function(r){
+      var involvesPerson = (r.a === personId || r.b === personId);
+      return !involvesPerson || keepRelIds.indexOf(r.id) > -1;
+    });
+    pendingConnections.forEach(function(c){
+      if(!c.relId){
+        relationships.push({ id: uid('r'), a: personId, b: c.targetId, label: c.label });
+      }
+    });
+    saveRelationships();
+
     savePeople();
     renderTagBar();
     renderAll();
@@ -1191,27 +1402,13 @@
     showToast('Saved');
   };
 
-  // Keep the other side of a link in sync.
-  function syncReciprocalConnections(record){
-    record.connections.forEach(function(c){
-      var target = getPerson(c.targetId);
-      if(!target) return;
-      target.connections = target.connections || [];
-      var already = target.connections.some(function(tc){ return tc.targetId === record.id; });
-      if(!already){
-        target.connections.push({ targetId: record.id, label: '' });
-      }
-    });
-  }
-
   document.getElementById('deleteBtn').onclick = function(){
     if(!editingId) return;
     if(!confirm('Delete this person? This can\'t be undone.')) return;
     people = people.filter(function(p){ return p.id !== editingId; });
-    people.forEach(function(p){
-      p.connections = (p.connections||[]).filter(function(c){ return c.targetId !== editingId; });
-    });
+    relationships = relationships.filter(function(r){ return r.a !== editingId && r.b !== editingId; });
     savePeople();
+    saveRelationships();
     renderTagBar();
     renderAll();
     closeEditSheet();
@@ -1227,7 +1424,9 @@
     detailPersonId = id;
 
     var cat = p.categoryId ? getCategory(p.categoryId) : null;
-    document.getElementById('dGroup').textContent = cat ? cat.name : 'Uncategorized';
+    var tabText = cat ? cat.name : 'Uncategorized';
+    if(p.gender) tabText += ' · ' + p.gender;
+    document.getElementById('dGroup').textContent = tabText;
     document.getElementById('dName').textContent = p.name;
 
     var avatarWrap = document.getElementById('dAvatar');
@@ -1273,23 +1472,24 @@
     var connSection = document.getElementById('dConnSection');
     var connWrap = document.getElementById('dConnList');
     connWrap.innerHTML = '';
-    var conns = p.connections || [];
+    var rels = relationshipsForPerson(p.id);
     var anyRendered = false;
-    conns.forEach(function(c){
-      var target = getPerson(c.targetId);
+    rels.forEach(function(r){
+      var otherId = otherPersonId(r, p.id);
+      var target = getPerson(otherId);
       if(!target) return;
       anyRendered = true;
       var row = document.createElement('div');
       row.className = 'link-card';
       row.onclick = function(){ openDetail(target.id); };
       var left = document.createElement('div');
-      var rel = document.createElement('div');
-      rel.className = 'rel';
-      rel.textContent = c.label || 'connected';
+      var relEl = document.createElement('div');
+      relEl.className = 'rel';
+      relEl.textContent = r.label || 'connected';
       var nm = document.createElement('div');
       nm.className = 'nm';
       nm.textContent = target.name;
-      left.appendChild(rel);
+      left.appendChild(relEl);
       left.appendChild(nm);
       var arrow = document.createElement('div');
       arrow.className = 'arrow';
@@ -1317,12 +1517,170 @@
     openEditSheet(id);
   };
 
+  // ---------- Relationship map ----------
+  var mapOverlay = document.getElementById('mapOverlay');
+
+  function openMap(){
+    renderMap();
+    mapOverlay.classList.add('open');
+  }
+  function closeMap(){
+    mapOverlay.classList.remove('open');
+  }
+
+  function renderUnlinkedList(list){
+    var wrap = document.getElementById('mapUnlinkedWrap');
+    wrap.innerHTML = '';
+    if(list.length === 0){ wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    var h4 = document.createElement('h4');
+    h4.textContent = 'Not yet connected';
+    wrap.appendChild(h4);
+    var chipsWrap = document.createElement('div');
+    chipsWrap.className = 'chips';
+    list.slice().sort(function(a,b){ return a.name.localeCompare(b.name); }).forEach(function(p){
+      var chip = document.createElement('span');
+      chip.className = 'tag-chip';
+      chip.style.cursor = 'pointer';
+      chip.textContent = p.name;
+      chip.onclick = function(){ closeMap(); openDetail(p.id); };
+      chipsWrap.appendChild(chip);
+    });
+    wrap.appendChild(chipsWrap);
+  }
+
+  function renderMap(){
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var svg = document.getElementById('mapSvg');
+    var mapEmpty = document.getElementById('mapEmpty');
+    svg.innerHTML = '';
+
+    var connectedIds = {};
+    relationships.forEach(function(r){ connectedIds[r.a] = true; connectedIds[r.b] = true; });
+    var connectedPeople = people.filter(function(p){ return connectedIds[p.id]; });
+    var unlinkedPeople = people.filter(function(p){ return !connectedIds[p.id]; });
+
+    if(relationships.length === 0 || connectedPeople.length === 0){
+      svg.style.display = 'none';
+      mapEmpty.style.display = 'block';
+      renderUnlinkedList(unlinkedPeople);
+      return;
+    }
+    mapEmpty.style.display = 'none';
+    svg.style.display = 'block';
+
+    var n = connectedPeople.length;
+    var radius = Math.max(120, n * 26);
+    var pad = 90;
+    var size = radius * 2 + pad * 2;
+    svg.setAttribute('viewBox', '0 0 ' + size + ' ' + size);
+    svg.setAttribute('width', size);
+    svg.setAttribute('height', size);
+    svg.style.display = 'block';
+    svg.style.margin = '20px auto';
+
+    var cx = size/2, cy = size/2;
+    var pos = {};
+    connectedPeople.forEach(function(p, i){
+      var angle = (i / n) * Math.PI * 2 - Math.PI/2;
+      pos[p.id] = { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+    });
+
+    // Lines + labels first, so nodes render on top.
+    relationships.forEach(function(r){
+      var pa = pos[r.a], pb = pos[r.b];
+      if(!pa || !pb) return;
+
+      var line = document.createElementNS(svgNS, 'line');
+      line.setAttribute('x1', pa.x); line.setAttribute('y1', pa.y);
+      line.setAttribute('x2', pb.x); line.setAttribute('y2', pb.y);
+      line.setAttribute('style', 'stroke:var(--teal-bright); stroke-width:1.5; opacity:0.55;');
+      svg.appendChild(line);
+
+      if(r.label){
+        var mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
+        var w = Math.max(24, r.label.length * 5.4 + 10);
+        var rect = document.createElementNS(svgNS, 'rect');
+        rect.setAttribute('x', mx - w/2); rect.setAttribute('y', my - 8);
+        rect.setAttribute('width', w); rect.setAttribute('height', 15);
+        rect.setAttribute('rx', 7);
+        rect.setAttribute('style', 'fill:var(--ink);');
+        svg.appendChild(rect);
+
+        var labelText = document.createElementNS(svgNS, 'text');
+        labelText.setAttribute('x', mx); labelText.setAttribute('y', my + 3);
+        labelText.setAttribute('text-anchor', 'middle');
+        labelText.setAttribute('style', 'fill:var(--ink-text-dim); font-family:var(--font-mono); font-size:9px;');
+        labelText.textContent = r.label;
+        svg.appendChild(labelText);
+      }
+    });
+
+    // Nodes on top of lines.
+    connectedPeople.forEach(function(p){
+      var c = pos[p.id];
+      var r = 22;
+
+      if(p.photo){
+        var clipId = 'clip_' + p.id;
+        var clip = document.createElementNS(svgNS, 'clipPath');
+        clip.setAttribute('id', clipId);
+        var clipCircle = document.createElementNS(svgNS, 'circle');
+        clipCircle.setAttribute('cx', c.x); clipCircle.setAttribute('cy', c.y); clipCircle.setAttribute('r', r);
+        clip.appendChild(clipCircle);
+        svg.appendChild(clip);
+
+        var img = document.createElementNS(svgNS, 'image');
+        img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', p.photo);
+        img.setAttribute('href', p.photo);
+        img.setAttribute('x', c.x - r); img.setAttribute('y', c.y - r);
+        img.setAttribute('width', r*2); img.setAttribute('height', r*2);
+        img.setAttribute('clip-path', 'url(#' + clipId + ')');
+        img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+        img.style.cursor = 'pointer';
+        img.onclick = function(){ closeMap(); openDetail(p.id); };
+        svg.appendChild(img);
+
+        var ring = document.createElementNS(svgNS, 'circle');
+        ring.setAttribute('cx', c.x); ring.setAttribute('cy', c.y); ring.setAttribute('r', r);
+        ring.setAttribute('style', 'fill:none; stroke:var(--gold); stroke-width:2;');
+        svg.appendChild(ring);
+      } else {
+        var circle = document.createElementNS(svgNS, 'circle');
+        circle.setAttribute('cx', c.x); circle.setAttribute('cy', c.y); circle.setAttribute('r', r);
+        circle.setAttribute('style', 'fill:var(--teal); stroke:var(--gold); stroke-width:2; cursor:pointer;');
+        circle.onclick = function(){ closeMap(); openDetail(p.id); };
+        svg.appendChild(circle);
+
+        var initText = document.createElementNS(svgNS, 'text');
+        initText.setAttribute('x', c.x); initText.setAttribute('y', c.y + 5);
+        initText.setAttribute('text-anchor', 'middle');
+        initText.setAttribute('style', 'fill:var(--paper); font-family:var(--font-display); font-weight:600; font-size:15px; pointer-events:none;');
+        initText.textContent = initials(p.name);
+        svg.appendChild(initText);
+      }
+
+      var nameText = document.createElementNS(svgNS, 'text');
+      nameText.setAttribute('x', c.x); nameText.setAttribute('y', c.y + r + 16);
+      nameText.setAttribute('text-anchor', 'middle');
+      nameText.setAttribute('style', 'fill:var(--ink-text); font-family:var(--font-body); font-size:11px; cursor:pointer;');
+      nameText.textContent = p.name;
+      nameText.onclick = function(){ closeMap(); openDetail(p.id); };
+      svg.appendChild(nameText);
+    });
+
+    renderUnlinkedList(unlinkedPeople);
+  }
+
+  document.getElementById('mapBtn').onclick = openMap;
+  document.getElementById('closeMap').onclick = closeMap;
+
   // ---------- Search ----------
   document.getElementById('searchInput').addEventListener('input', renderAll);
 
   // ---------- Backup / restore ----------
   document.getElementById('exportBtn').onclick = function(){
-    var payload = { people: people, categories: categories };
+    var payload = { people: people, categories: categories, relationships: relationships };
     var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -1345,12 +1703,14 @@
     reader.onload = function(){
       try{
         var data = JSON.parse(reader.result);
-        var newPeople, newCats;
+        var newPeople, newCats, newRels;
         if(Array.isArray(data)){
           // old-format backup (people array only)
-          newPeople = data; newCats = categories;
+          newPeople = data; newCats = categories; newRels = relationships;
         } else if(data && Array.isArray(data.people)){
-          newPeople = data.people; newCats = Array.isArray(data.categories) ? data.categories : [];
+          newPeople = data.people;
+          newCats = Array.isArray(data.categories) ? data.categories : [];
+          newRels = Array.isArray(data.relationships) ? data.relationships : [];
         } else {
           throw new Error('bad format');
         }
@@ -1359,9 +1719,11 @@
         }
         people = newPeople;
         categories = newCats;
+        relationships = newRels;
         migrate();
         savePeople();
         saveCategories();
+        saveRelationships();
         renderTagBar();
         renderAll();
         showToast('Backup restored');
@@ -1383,6 +1745,7 @@
   // ---------- Init ----------
   loadCategories();
   loadPeople();
+  loadRelationships();
   loadCollapse();
   migrate();
   renderTagBar();

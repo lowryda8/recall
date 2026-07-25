@@ -1,6 +1,6 @@
 // Bump CACHE_NAME any time you change index.html/manifest/icons — that's
 // what forces old cached copies to be thrown out and replaced.
-const CACHE_NAME = 'rolodex-cache-v2';
+const CACHE_NAME = 'rolodex-cache-v3';
 const ASSETS = [
   './',
   './index.html',
